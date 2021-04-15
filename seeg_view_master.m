@@ -62,7 +62,7 @@ bvol = bvol/prctile(bvol(:), 99);
 
 slicethickness = 8; % thickness of each plotted slice, in mm
 
-[x_slice, y_slice, z_slice] = seegview_sliceplot(locs, bvol, x, y, z, slicethickness, [0, 0.5]);
+[x_slice, y_slice, z_slice] = seegview_sliceplot(locs, bvol, x, y, z, slicethickness);
 sv_label_add(locs, electrodes.name, x_slice);
 sv_label_add(locs, electrodes.name, y_slice);
 sv_label_add(locs, electrodes.name, z_slice);
