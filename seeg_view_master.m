@@ -7,7 +7,6 @@
 % cd to current folder
 % create ./data folder and copy in MRI nifti file, electrodes.tsv file, and gifti brain surface file
 
-% add path to data subdirectory
 % add path to SPM
 % add path to gifti
 
