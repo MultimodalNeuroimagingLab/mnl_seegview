@@ -4,7 +4,9 @@
 
 %% add paths, etc
 
-% cd here
+% cd to current folder
+% create ./data folder and copy in MRI nifti file, electrodes.tsv file, and gifti brain surface file
+
 % add path to data subdirectory
 % add path to SPM
 % add path to gifti
@@ -21,17 +23,18 @@ load('data/img_acpc.mat');
 
 %% load and transform electrode positions into acpc space (mm)
 
-elecFile = 'path/to/electrodes.tsv';
+elecFile = 'data/electrodes.tsv';
 
 electrodes = readtable(elecFile, 'FileType','text','Delimiter','\t','TreatAsEmpty',{'N/A','n/a'});
 locs = indexfix(data_raw.O_info, [electrodes.x, electrodes.y, electrodes.z], rot_mat_acpc);
 
-% Load plot weights corresponding to each electrode loc
-plot_wts = rand([size(locs, 1), 1]);
+% Load plot weights corresponding to each electrode loc. Here we create normal random weights centered on 0
+rng(2021);
+plot_wts = normrnd(0, 0.5, size(locs, 1), 1);
 
 %% load and transform rendered brain into acpc space (mm)
 
-cortex = gifti('path/to/cortex/segmentation.gii');
+cortex = gifti('data/brain_surface.gii');
 bv = indexfix(data_raw.O_info, cortex.vertices, rot_mat_acpc); % vertices in acpc pos
 cortex.vertices = bv;
 
