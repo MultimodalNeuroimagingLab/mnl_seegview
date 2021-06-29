@@ -5,8 +5,9 @@
 %
 %   slicesFromNifti(niiPath, electrodes);
 %   slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim);
-%       niiPath =           str, path to nifti brain image (which should already be ac-pc)
-%       electrodes =        nx_ table, table of electrodes to plot. Must have columns <name>, <x>, <y>, and <z>
+%       niiPath =           char, path to nifti brain image (which should already be ac-pc)
+%       electrodes =        char or nx_ table, path to electrodes table file or electrodes table to plot.
+%                               Must contain columns <name>, <x>, <y>, and <z>
 %       slicethickness =    num (optional), distance in mm between consecutive slices. Default = 8
 %       wts =               nx1 double (optional), plot weights corresponding to electrodes. If none given, electrodes
 %                           will be plotted with labelled names.
@@ -19,11 +20,15 @@
 %       z_slice =           slice object in z direction
 %
 %   HH 2021
+%   Updated 2021/06/29 to allow for electrodes input as path
 %
 function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim)
     
     if ~exist('clim', 'var') || isempty(clim), clim = [0, 1]; end
     if ~exist('slicethickness', 'var') || isempty(slicethickness), slicethickness = 8; end
+    if ischar(class(electrodes)) || isstring(class(electrodes))
+        electrodes = readtable(electrodes, 'FileType', 'text', 'Delimiter', '\t');
+    end
 
     img = spm_vol(niiPath);
     bvol = spm_read_vols(img); % load brain image
