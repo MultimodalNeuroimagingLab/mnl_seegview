@@ -22,7 +22,7 @@
 %   HH 2021
 %   Updated 2021/06/29 to allow for electrodes input as path
 %
-function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim)
+function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim, wm)
     
     if ~exist('clim', 'var') || isempty(clim), clim = [0, 1]; end
     if ~exist('slicethickness', 'var') || isempty(slicethickness), slicethickness = 8; end
@@ -34,6 +34,11 @@ function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slic
     bvol = spm_read_vols(img); % load brain image
     bmat = img.mat; % vox -> pos transformation
     
+    % Permute bvol and bmat so it follows columns x, y, z
+    [~, index] = sortrows(abs(bmat(1:3, 1:3)'), [1, 2, 3], 'descend');
+    bvol = permute(bvol, index);
+    bmat = bmat(:, [index; 4]); % only rearrange first 3 columns
+    
     bvol = bvol/prctile(bvol(:), 99); % image intensity
     [bvol, bmat] = clipVol(bvol, bmat, 0.1); % renove empty space
     
@@ -44,10 +49,12 @@ function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slic
     [x_slice, y_slice, z_slice] = seegview_sliceplot(locs, bvol, x, y, z, slicethickness, clim);
     
     if exist('wts', 'var') && ~isempty(wts)
+        if ~exist('wm', 'var') || isempty(wm), wm = max(abs(wts)); end
+        
         assert(length(wts) == size(locs, 1), 'length of wts (%d) does not match number of electrodes (%d)', length(wts), height(electrodes));
-        sv_weight_add(locs, wts, x_slice, 0.1);
-        sv_weight_add(locs, wts, y_slice, 0.1);
-        sv_weight_add(locs, wts, z_slice, 0.1);
+        sv_weight_add(locs, wts, x_slice, 0.1, wm);
+        sv_weight_add(locs, wts, y_slice, 0.1, wm);
+        sv_weight_add(locs, wts, z_slice, 0.1, wm);
     else
         sv_label_add(locs, electrodes.name, x_slice);
         sv_label_add(locs, electrodes.name, y_slice);
