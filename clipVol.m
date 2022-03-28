@@ -15,9 +15,10 @@ function [bvol, bmat] = clipVol(bvol, bmat, thresh)
     % the volume to keep
     bvol_logical = bvol > thresh; % logical volume corresponding to voxels > thresh
     
-    bx = find(squeeze(sum(sum(bvol_logical, 2), 3))); % slices with at least some signal
-    by = find(squeeze(sum(sum(bvol_logical, 1), 3))); 
-    bz = find(squeeze(sum(sum(bvol_logical, 1), 2))); 
+    % ensure clipping is done for consecutive series of indices
+    bx = find(squeeze(sum(sum(bvol_logical, 2), 3)), 1, 'first'):find(squeeze(sum(sum(bvol_logical, 2), 3)), 1, 'last'); % slices with at least some signal
+    by = find(squeeze(sum(sum(bvol_logical, 1), 3)), 1, 'first'):find(squeeze(sum(sum(bvol_logical, 1), 3)), 1, 'last'); 
+    bz = find(squeeze(sum(sum(bvol_logical, 1), 2)), 1, 'first'):find(squeeze(sum(sum(bvol_logical, 1), 2)), 1, 'last'); 
 
     bvol = bvol(bx, by, bz); % reassign brain image, update transformation matrix accordingly
     bmat(1:3, 4) = bmat(1:3, 4)+[(bx(1)-1)*bmat(1,1); (by(1)-1)*bmat(2,2); (bz(1)-1)*bmat(3,3)];
