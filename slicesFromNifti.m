@@ -26,7 +26,7 @@ function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slic
     
     if ~exist('clim', 'var') || isempty(clim), clim = [0, 1]; end
     if ~exist('slicethickness', 'var') || isempty(slicethickness), slicethickness = 8; end
-    if ischar(class(electrodes)) || isstring(class(electrodes))
+    if ischar(electrodes) || isstring(electrodes)
         electrodes = readtable(electrodes, 'FileType', 'text', 'Delimiter', '\t');
     end
 
