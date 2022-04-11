@@ -1,6 +1,7 @@
 %% This function plots slices from an input nifti along the x, y, and z directions, and plots electrodes to the slices.
 %   It is a convenient wrapper to apply just the slice_plot part of the SEEG_view package when the brain image and
-%   electrodes are already in AC-PC space.
+%   electrodes are already in AC-PC space. Requires the vox2pos matrix in the nifti (bmat) to not contain off-diagonal (rotation/shear) values.
+%   If so, warning will appear and resulting electrodes will be misaligned from slices (greater misalignment with more rotation)
 %   Dependency: Uses SPM12 functions to load the nifti
 %
 %   slicesFromNifti(niiPath, electrodes);
@@ -39,12 +40,18 @@ function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slic
     bvol = permute(bvol, index);
     bmat = bmat(:, [index; 4]); % only rearrange first 3 columns
     
+    bmatCheck = bmat(1:3, 1:3); % to check if there are any rotations/shears
+    if ~all(bmatCheck(~eye(3)) == 0)
+        warning('vox2pos matrix has off-diagonal elements; slices are MISALIGNED from electrodes');
+        disp(bmat);
+    end
+    
     bvol = bvol/prctile(bvol(:), 99); % image intensity
     [bvol, bmat] = clipVol(bvol, bmat, 0.1); % renove empty space
     
     locs = [electrodes.x, electrodes.y, electrodes.z];
     
-    [x, y, z] = getAxPos(bvol, bmat); % Get positions (mm) along x, y, z axes of brain volume
+    [x, y, z] = getAxPos(bvol, bmat); % Get positions (mm) along x, y, z axes of brain volume; assumes no rotations/shearing in bmat
     
     [x_slice, y_slice, z_slice] = seegview_sliceplot(locs, bvol, x, y, z, slicethickness, clim);
     
