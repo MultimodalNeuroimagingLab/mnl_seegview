@@ -1,11 +1,15 @@
-function sv_weight_add(locs, plot_wts, slice, threshFrac)
+function sv_weight_add(locs, plot_wts, slice, threshFrac, wm)
     
-    if nargin < 4, threshFrac = 0; end % abs(values) below threshFrac*wm deemed not significant
+    if nargin < 4 || isempty(threshFrac), threshFrac = 0; end % abs(values) below threshFrac*wm deemed not significant
 
     plot_wts(isnan(plot_wts)) = 0;
     
     %% scale to maximum across slices
-    wm=max(abs(plot_wts));
+    if nargin < 5
+        wm=max(abs(plot_wts));
+    end
+    plot_wts(plot_wts > wm) = wm; % clipping
+    plot_wts(plot_wts < -wm) = -wm;
 
     %% plotting add - cycle through slices
     for k=1:length(slice.values)    
@@ -30,21 +34,21 @@ pthresh = threshFrac*wm;
             if abs(wts(q)) < pthresh % not significant
                 % dark gray
                 plot(els(q,1), els(q,2), 'o', ...
-                'MarkerSize', 3, ...
+                'MarkerSize', 4, ...
                 'MarkerEdgeColor', 0.98*[1 1 1], ...
                 'MarkerFaceColor', 0.35*[1 1 1]);
             
             elseif wts(q) >= pthresh
                 % red
                 plot(els(q,1), els(q,2), 'o', ...
-                'MarkerSize', 6*wts(q)/wm + 3, ...
+                'MarkerSize', 6*wts(q)/wm + 4, ...
                 'MarkerEdgeColor', 0.98*[1 1 1], ...
                 'MarkerFaceColor', 0.99*[1 1 - wts(q)/wm 1 - wts(q)/wm]);
                 
             elseif wts(q) <= (-pthresh)
                 % blue
                 plot(els(q,1), els(q,2), 'o', ...
-                'MarkerSize', -6*wts(q)/wm + 3, ...
+                'MarkerSize', -6*wts(q)/wm + 4, ...
                 'MarkerEdgeColor', 0.98*[1 1 1], ...
                 'MarkerFaceColor', 0.99*[1 + wts(q)/wm 1 + wts(q)/wm 1]);
             
