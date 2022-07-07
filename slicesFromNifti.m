@@ -14,6 +14,8 @@
 %                           will be plotted with labelled names.
 %       clim =              1x2 double (optional), color limits for the MRI scaled intensity. MRI voxels are normalized
 %                           by their 99%ile intensity. Default limits are [0, 1], setting the 99%ile voxels to be white.
+%       wm =                num (optional), maximum weight to clip wts when wts are given (all values >= wm are plotted with maximum size and intensity)
+%       plotNames =         bool (optional), if true (default), electrode names are plotted to each electrode when wts are not given.
 %
 %   Returns:
 %       x_slice =           slice object in x direction
@@ -22,13 +24,14 @@
 %
 %   HH 2021
 %   Updated 2021/06/29 to allow for electrodes input as path
+%   Updated 2022/07/22 with additional plotNames input
 %
-function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim, wm)
+function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slicethickness, wts, clim, wm, plotNames)
     
     if ~exist('clim', 'var') || isempty(clim), clim = [0, 1]; end
     if ~exist('slicethickness', 'var') || isempty(slicethickness), slicethickness = 8; end
     if ischar(electrodes) || isstring(electrodes)
-        electrodes = readtable(electrodes, 'FileType', 'text', 'Delimiter', '\t');
+        electrodes = readtable(electrodes, 'FileType', 'text', 'Delimiter', '\t', 'TreatAsEmpty', 'n/a');
     end
 
     img = spm_vol(niiPath);
@@ -63,9 +66,15 @@ function [x_slice, y_slice, z_slice] = slicesFromNifti(niiPath, electrodes, slic
         sv_weight_add(locs, wts, y_slice, 0.1, wm);
         sv_weight_add(locs, wts, z_slice, 0.1, wm);
     else
-        sv_label_add(locs, electrodes.name, x_slice);
-        sv_label_add(locs, electrodes.name, y_slice);
-        sv_label_add(locs, electrodes.name, z_slice);
+        if exist('plotNames', 'var') && ~plotNames
+            sv_label_add(locs, [], x_slice);
+            sv_label_add(locs, [], y_slice);
+            sv_label_add(locs, [], z_slice);
+        else % plot names to each electrode (default behavior)
+            sv_label_add(locs, electrodes.name, x_slice);
+            sv_label_add(locs, electrodes.name, y_slice);
+            sv_label_add(locs, electrodes.name, z_slice);
+        end
     end
     
 end
