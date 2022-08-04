@@ -1,5 +1,6 @@
 % Template for running SEEG view
 %
+% KJM 2020
 % HH 2021
 
 %% add paths, etc
